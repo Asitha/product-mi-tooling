@@ -24,15 +24,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.ei.dashboard.bootstrap.core.commons.Constants;
 import org.wso2.ei.dashboard.bootstrap.core.db.manager.DatabaseManager;
-import org.wso2.ei.dashboard.bootstrap.core.db.manager.DatabaseManagerFactory;
+import org.wso2.ei.dashboard.bootstrap.core.db.manager.JDBCDatabaseManager;
 import org.wso2.ei.dashboard.bootstrap.core.exception.DashboardServerException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DatabaseConnection {
-    private static final Log log = LogFactory.getLog(DatabaseConnection.class);
+public class DatabaseManagerFactory {
+    private static final Log log = LogFactory.getLog(DatabaseManagerFactory.class);
+
+    private DatabaseManagerFactory() {
+    }
 
     private static DatabaseManager databaseManager;
 
@@ -40,17 +43,21 @@ public class DatabaseConnection {
           if (databaseManager == null) {
               String connectionUrl = Constants.DATABASE_URL;
               String dbType = DbUtils.getDbType(connectionUrl);
-              if (dbType.equals("h2")) {
-                  createInMemoryDB();
-              }
-              DatabaseManagerFactory databaseManagerFactory = new DatabaseManagerFactory();
-              databaseManager = databaseManagerFactory.getDatabaseManager(dbType);
+              databaseManager = getDatabaseManager(dbType);
           }
           return databaseManager;
     }
 
+    private static DatabaseManager getDatabaseManager(String dbType) {
+        switch (dbType) {
+            case "jdbc":
+            default:
+                return new JDBCDatabaseManager();
+        }
+    }
+
     private static void createInMemoryDB() {
-        String scriptLocation = Constants.DASHBOARD_HOME + "/dbscripts/h2.sql";
+        String scriptLocation = Constants.DASHBOARD_HOME + "/dbscripts/h2.sql'";
         String dbUrl = Constants.DATABASE_URL + ";INIT=RUNSCRIPT FROM '" + scriptLocation + "'";
         Connection conn = null;
         try {

@@ -20,21 +20,19 @@
 
 package org.wso2.ei.dashboard.bootstrap.core.db.manager;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.ei.dashboard.bootstrap.core.commons.Constants;
-import org.wso2.ei.dashboard.bootstrap.core.commons.utils.DbUtils;
-import org.wso2.ei.dashboard.bootstrap.core.rest.model.HeatbeatSignalRequestBody;
 import org.wso2.ei.dashboard.bootstrap.core.exception.DashboardServerException;
+import org.wso2.ei.dashboard.bootstrap.core.rest.model.HeatbeatSignalRequestBody;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public final class JDBCDatabaseManager implements DatabaseManager {
 
@@ -48,9 +46,9 @@ public final class JDBCDatabaseManager implements DatabaseManager {
         config.setUsername(Constants.DATABASE_USERNAME);
         config.setPassword(Constants.DATABASE_PASSWORD);
 
-        config.addDataSourceProperty( "cachePrepStmts" , "true" );
-        config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
-        config.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         ds = new HikariDataSource(config);
     }
 
@@ -61,20 +59,13 @@ public final class JDBCDatabaseManager implements DatabaseManager {
         try {
             con = getConnection();
             pst = con.prepareStatement(query);
+
             return pst.executeUpdate();
         } catch (SQLException e) {
             throw new DashboardServerException("Error occurred while updating data using query : " + query, e);
         } finally {
-            try {
-                if (pst != null) {
-                    pst.close();
-                }
-                if (con != null) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            closeStatement(pst);
+            closeConnection(con);
         }
     }
 
@@ -116,16 +107,8 @@ public final class JDBCDatabaseManager implements DatabaseManager {
         } catch (SQLException e) {
             throw new DashboardServerException("Error occurred while retrieveTimestampOfRegisteredNode results.", e);
         } finally {
-            try {
-                if (pst != null) {
-                    pst.close();
-                }
-                if (con != null) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            closeStatement(pst);
+            closeConnection(con);
         }
     }
 
@@ -147,18 +130,30 @@ public final class JDBCDatabaseManager implements DatabaseManager {
         } catch (SQLException e) {
             throw new DashboardServerException("Error occurred while retrieving next row.", e);
         } finally {
-            try {
-                if (pst != null) {
-                    pst.close();
-                }
-                if (con != null) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            closeStatement(pst);
+            closeConnection(con);
         }
         return isExists;
+    }
+
+    private void closeConnection(Connection con) {
+        try {
+            if (con != null) {
+                con.close();
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred", e);
+        }
+    }
+
+    private void closeStatement(PreparedStatement pst) {
+        try {
+            if (pst != null) {
+                pst.close();
+            }
+        } catch (SQLException e) {
+            log.error("", e);
+        }
     }
 
     private Connection getConnection() throws SQLException {

@@ -22,10 +22,5 @@ package org.wso2.ei.dashboard.bootstrap.core.db.manager;
 
 public class DatabaseManagerFactory {
 
-    public DatabaseManager getDatabaseManager(String dbType) {
-        switch (dbType) {
-            default:
-                return new JDBCDatabaseManager();
-        }
-    }
+
 }

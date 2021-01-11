@@ -42,7 +42,6 @@ public class DatabaseQueryObject {
         this.tableName = tableName;
     }
 
-
     public String[] getInsertColumns() {
 
         return insertColumns;
